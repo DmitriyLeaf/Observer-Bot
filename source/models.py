@@ -1,7 +1,7 @@
 from datetime import datetime
 from telegram import User
 from typing import Optional
-from constants import Delay
+from constants import Delay, Stage
 
 
 class Admin:
@@ -12,6 +12,8 @@ class Admin:
         self.observing: bool = False
         self.delay: Delay = Delay.one
         self.critical_only: bool = False
+        self.stage: Stage = Stage.HELLO
+        self.sub_stage: Stage = Stage.HELLO
 
 
 class Service:
