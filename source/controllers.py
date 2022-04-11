@@ -46,7 +46,6 @@ class TempSession:
     def get_user_or_create(self, user: User) -> Admin:
         if user.id in self.sessions:
             l_user = self.sessions[user.id]
-            l_user.add_new_login()
             return l_user
         else:
             return self.append_new_user(user)
@@ -106,8 +105,9 @@ class BotDebugger:
         self.bot.send_message(
             chat_id=SUPER_ADMIN_ID,
             text=f"<b>Ping 🏓</b> \n\n👥 Sessions: {len(TempSession.shared.sessions)} \n\n"
+                 f"{DBManager.shared.get_db_status_str()}\n\n"
                  f"🔵 Current time:\n<code>{DT_tool.now()}</code> \n"
-                 f"🟢 Start time:\n<code>{self.start_time}</code> \n\n"
+                 f"⚪️ Start time:\n<code>{self.start_time}</code> \n\n"
                  f"/{Command.start_audit.value}\n/{Command.stop_audit.value}",
             parse_mode=ParseMode.HTML,
             disable_notification=True
@@ -174,10 +174,13 @@ class DBManager:
         self.logs_queue: set = set()
         self.logs_spreadsheet: Optional[Spreadsheet] = None
         self.logs_sheet: Optional[Worksheet] = None
+        self.is_logs_OK: bool = False
 
         self.database_spreadsheet: Optional[Spreadsheet] = None
         self.database_sheets: {DBManager: Optional[Worksheet]} = {}
         self.is_database_syncing: bool = False
+        self.is_database_OK: bool = False
+        self.database_statuses: {DBManager.DBKeys: bool} = {}
 
         self.dispatcher.run_async(self.authorize_open_spreadsheet)
 
@@ -194,6 +197,7 @@ class DBManager:
         self.get_database_sheets()
 
     def get_log_sheet(self):
+        self.is_logs_OK = False
         try:
             self.logs_sheet = self.logs_spreadsheet.worksheet(self.logs_worksheet_title())
             BotDebugger.shared.info_log_simple(
@@ -207,17 +211,21 @@ class DBManager:
                 text=f"Success add LOG worksheet by title: {self.logs_worksheet_title()}"
             )
         finally:
+            self.is_logs_OK = True
             self.__write_logs_queue()
 
     def get_database_sheets(self):
         if self.is_database_syncing:
             return
         self.is_database_syncing = True
+        self.is_database_OK = False
         for sheet_case in self.DBKeys.cases():
             self.get_db_sheet_by(case=sheet_case)
         self.is_database_syncing = False
+        self.is_database_OK = True
 
     def get_db_sheet_by(self, case: 'DBManager.DBKeys'):
+        self.database_statuses[case] = False
         try:
             sheet = self.database_spreadsheet.worksheet(case.value)
             BotDebugger.shared.info_log_simple(
@@ -232,6 +240,17 @@ class DBManager:
                 text=f"Success add worksheet by title: {case.value}"
             )
             self.database_sheets[case] = sheet
+        self.database_statuses[case] = True
+
+    def get_db_status_str(self) -> str:
+        detailed = ""
+        for case in DBManager.DBKeys:
+            detailed += f"    {'🟢' if case in self.database_statuses and self.database_statuses[case] else '🔴'} " \
+                        f"{case.value}\n"
+        return f"🗄 Database: \n<code>    {'🟡' if DBManager.shared.is_database_syncing else '🟢'} sync\n" \
+               f"    {'🟢' if DBManager.shared.is_database_OK else '🔴'} OK\n" \
+               f"    {'🟢' if self.is_logs_OK else '🔴'} LOGS\n" \
+               f"{detailed}</code>"
 
     @staticmethod
     def logs_worksheet_title():

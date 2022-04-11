@@ -29,8 +29,8 @@ class Command(str, Enum):
     stop_audit = "stop_audit"
 
 
-class Stage(int, Enum):
-    HELLO = 0
-    LOGIN = 1
-    PASSWORD = 2
-    ACCESS_CHECKING = 3
+class Stage(str, Enum):
+    HELLO = "HELLO"
+    LOGIN = "LOGIN"
+    PASSWORD = "PASSWORD"
+    ACCESS_CHECKING = "ACCESS_CHECKING"
