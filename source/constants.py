@@ -10,7 +10,7 @@ LOGS_DB_NAME = 'Logs'
 DATABASE_NAME = 'Database'
 
 
-class Delay(int, Enum): # specify time!
+class Delay(int, Enum):
     quarter = 15
     half = 30
     one = 60
