@@ -3,7 +3,7 @@ import messages as msg
 import constants as const
 
 from models import Admin
-from controllers import TempSession, BotDebugger
+from controllers import TempSession, BotDebugger, DBManager
 
 from telegram import Update, ParseMode, ReplyKeyboardRemove
 from telegram.ext import (
@@ -26,17 +26,18 @@ def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued"""
     user = update.effective_user
     user_session: Admin = TempSession.shared.get_user_or_create(user=user)
-    admin = Admin(tg_user=user)
+    admin = Admin(aid=user.id, username=user.username)
     print(admin.to_dict())
     print(admin.to_json())
 
-    print(admin.tg_user.to_dict())
-    print(admin.tg_user.to_json())
     BotDebugger.shared.info_log(
         admin=admin,
         title="NEW SESSION",
         text=update.message.text
     )
+    DBManager.shared.save_admin(admin)
+    result = DBManager.shared.get_admin(admin)
+    print(result)
 
 
 def stop_audit(update: Update, context: CallbackContext) -> None:

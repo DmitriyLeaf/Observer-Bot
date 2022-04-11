@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from enum import Enum
 from logging import Logger
 from typing import Optional
@@ -8,10 +9,10 @@ import messages as msg
 from constants import *
 from models import Admin
 from constants import Stage
-from tools import DateTime as DT_tool
+from tools import DateTime as DT_tool, EnumTool
 
 import gspread
-from gspread import Spreadsheet, Worksheet, Client, WorksheetNotFound
+from gspread import Spreadsheet, Worksheet, Client, WorksheetNotFound, Cell
 
 from telegram.ext.utils.promise import Promise
 from telegram import User, Bot, ParseMode
@@ -124,7 +125,7 @@ class BotDebugger:
         self.is_audition = False
 
     def info_log(self, admin: Admin, title: str = "INFO", text: str = ""):
-        message = f"\n=== {title}: {text} \n[ {admin.tg_user.id}, {admin.tg_user.username} ] " \
+        message = f"\n=== {title}: {text} \n[ {admin.aid}, {admin.username} ] " \
                   f"[ {admin.stage}, {admin.sub_stage} ]\n"
         self.logger.info(msg=message)
         message = f"{DT_tool.now()} - INFO - {message}"
@@ -149,18 +150,16 @@ class BotDebugger:
 class DBManager:
     shared: 'DBManager' = None
 
-    class DBKeys(Enum):
+    class DBKeys(EnumTool):
         ADMINS = "ADMINS"
         SERVICES = "SERVICES"
         REPORTS = "REPORTS"
 
-        @staticmethod
-        def cases() -> ['DBManager.DBKeys']:
-            return list(map(lambda c: c, DBManager.DBKeys))
-
-        @staticmethod
-        def values() -> [str]:
-            return list(map(lambda c: c.value, DBManager.DBKeys))
+        def keys_list(self) -> list:
+            if self == DBManager.DBKeys.ADMINS:
+                return list(Admin().__dict__.keys())
+            else:
+                return list()
 
     def __new__(cls, dispatcher: Dispatcher):
         if cls.shared is None:
@@ -197,6 +196,70 @@ class DBManager:
         self.get_log_sheet()
         self.get_database_sheets()
 
+    def get_database_sheets(self):
+        if self.is_database_syncing:
+            return
+        self.is_database_syncing = True
+        self.is_database_OK = False
+        for sheet_case in self.DBKeys.cases(self.DBKeys):
+            self.get_db_sheet_by(case=sheet_case)
+        self.is_database_syncing = False
+        self.is_database_OK = True
+
+    def get_db_sheet_by(self, case: 'DBManager.DBKeys'):
+        self.database_statuses[case] = False
+        try:
+            sheet = self.database_spreadsheet.worksheet(case.value)
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text=f"Success worksheet by title: {case.value}"
+            )
+            self.database_sheets[case] = sheet
+        except WorksheetNotFound:
+            sheet = self.database_spreadsheet.add_worksheet(case.value, rows=1, cols=1, index=0)
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text=f"Success add worksheet by title: {case.value}"
+            )
+            self.database_sheets[case] = sheet
+            sheet.insert_rows(values=[case.keys_list()], row=1)
+        self.database_statuses[case] = True
+
+    def get_db_status_str(self) -> str:
+        detailed = ""
+        for case in DBManager.DBKeys:
+            detailed += f"    {'🟢' if case in self.database_statuses and self.database_statuses[case] else '🔴'} " \
+                        f"{case.value}\n"
+        return f"🗄 Database: \n<code>    {'🟡' if DBManager.shared.is_database_syncing else '🟢'} sync\n" \
+               f"    {'🟢' if DBManager.shared.is_database_OK else '🔴'} OK\n" \
+               f"    {'🟢' if self.is_logs_OK else '🔴'} LOGS\n" \
+               f"{detailed}</code>"
+
+    def save_admin(self, admin: Admin):
+        ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
+        cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
+        if cell is not None:
+            ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
+        else:
+            ws.insert_rows(values=[admin.to_list()], row=len(ws.col_values(1))+1)
+
+    def get_admin(self, admin: Admin) -> Optional[Admin]:
+        ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
+        cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
+        if cell is None:
+            return None
+        values = ws.row_values(cell.row)
+        keys = Admin().__dict__.keys()
+        a_dict = dict(zip(keys, values))
+        try:
+            adm = Admin.decode_dict(Admin, a_dict)
+            return adm
+        except:
+            return None
+
+    # ---------------------------------------------------------------------------------------
+    # LOGS
+
     def get_log_sheet(self):
         self.is_logs_OK = False
         try:
@@ -214,44 +277,6 @@ class DBManager:
         finally:
             self.is_logs_OK = True
             self.__write_logs_queue()
-
-    def get_database_sheets(self):
-        if self.is_database_syncing:
-            return
-        self.is_database_syncing = True
-        self.is_database_OK = False
-        for sheet_case in self.DBKeys.cases():
-            self.get_db_sheet_by(case=sheet_case)
-        self.is_database_syncing = False
-        self.is_database_OK = True
-
-    def get_db_sheet_by(self, case: 'DBManager.DBKeys'):
-        self.database_statuses[case] = False
-        try:
-            sheet = self.database_spreadsheet.worksheet(case.value)
-            BotDebugger.shared.info_log_simple(
-                title="DB MANAGER",
-                text=f"Success worksheet by title: {case.value}"
-            )
-            self.database_sheets[case] = sheet
-        except WorksheetNotFound:
-            sheet = self.database_spreadsheet.add_worksheet(case.value, rows=5, cols=5, index=0)
-            BotDebugger.shared.info_log_simple(
-                title="DB MANAGER",
-                text=f"Success add worksheet by title: {case.value}"
-            )
-            self.database_sheets[case] = sheet
-        self.database_statuses[case] = True
-
-    def get_db_status_str(self) -> str:
-        detailed = ""
-        for case in DBManager.DBKeys:
-            detailed += f"    {'🟢' if case in self.database_statuses and self.database_statuses[case] else '🔴'} " \
-                        f"{case.value}\n"
-        return f"🗄 Database: \n<code>    {'🟡' if DBManager.shared.is_database_syncing else '🟢'} sync\n" \
-               f"    {'🟢' if DBManager.shared.is_database_OK else '🔴'} OK\n" \
-               f"    {'🟢' if self.is_logs_OK else '🔴'} LOGS\n" \
-               f"{detailed}</code>"
 
     @staticmethod
     def logs_worksheet_title():
