@@ -1,9 +1,10 @@
 import json
 from enum import Enum
-from datetime import datetime
-from telegram import User
 from typing import Optional
+from datetime import datetime
 from constants import Delay, Stage
+
+from telegram import User
 
 
 class BaseModel:
@@ -40,8 +41,11 @@ class Admin(BaseModel):
         self.stage: Stage = stage
         self.sub_stage: Stage = sub_stage
 
+        if aid < 0 and tg_user is not None:
+            self.aid = tg_user.id
 
-class Service:
+
+class Service(BaseModel):
     def __init__(self):
         self.id: int = -1
         self.name: str = ""

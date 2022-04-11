@@ -25,9 +25,15 @@ logger = logging.getLogger(__name__)
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued"""
     user = update.effective_user
-    user_session: Admin = TempSession.shared.get_user_or_create(user=user)
+    # user_session: Admin = TempSession.shared.get_user_or_create(user=user)
+    admin = Admin(tg_user=user)
+    print(admin.to_dict())
+    print(admin.to_json())
+
+    print(admin.tg_user.to_dict())
+    print(admin.tg_user.to_json())
     BotDebugger.shared.info_log(
-        admin=user_session,
+        admin=admin,
         title="NEW SESSION",
         text=update.message.text
     )

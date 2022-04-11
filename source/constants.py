@@ -10,7 +10,7 @@ LOGS_DB_NAME = 'Logs'
 DATABASE_NAME = 'Database'
 
 
-class Delay(Enum):
+class Delay(int, Enum):
     quarter = 15
     half = 30
     one = 60
@@ -18,7 +18,7 @@ class Delay(Enum):
     day = 1440
 
 
-class Command(Enum):
+class Command(str, Enum):
     start = "start"
     start_observe = "start_observe"
     stop_observe = "stop_observe"
@@ -29,7 +29,7 @@ class Command(Enum):
     stop_audit = "stop_audit"
 
 
-class Stage(Enum):
+class Stage(int, Enum):
     HELLO = 0
     LOGIN = 1
     PASSWORD = 2
