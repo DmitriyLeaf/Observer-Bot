@@ -10,12 +10,21 @@ LOGS_DB_NAME = 'Logs'
 DATABASE_NAME = 'Database'
 
 
-class Delay(int, Enum):
+class Delay(int, Enum): # specify time!
     quarter = 15
     half = 30
     one = 60
     six = 360
     day = 1440
+
+    def hours_value(self) -> float:
+        return self.value/60
+
+    def minutes_value(self) -> float:
+        return self.value
+
+    def seconds_value(self) -> float:
+        return self.value*60
 
 
 class Command(str, Enum):

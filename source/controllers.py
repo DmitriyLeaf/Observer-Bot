@@ -5,7 +5,7 @@ from logging import Logger
 from typing import Optional
 
 import messages as msg
-from constants import Command, SUPER_ADMIN_ID, LOGS_DB_NAME, DATABASE_NAME
+from constants import *
 from models import Admin
 from constants import Stage
 from tools import DateTime as DT_tool
@@ -84,6 +84,7 @@ class BotDebugger:
         self.start_time = DT_tool.now()
         self.dispatcher: Dispatcher = dispatcher
         self.logger: Logger = logger
+        self.delay: Delay = Delay.one
 
         DBManager(dispatcher)
 
@@ -99,7 +100,7 @@ class BotDebugger:
     def audition_thread(self):
         while self.is_audition:
             self.ping_to_admin()
-            time.sleep(60*60)
+            time.sleep(self.delay.seconds_value())
 
     def ping_to_admin(self):
         self.bot.send_message(
