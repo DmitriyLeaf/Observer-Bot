@@ -27,7 +27,7 @@ def start(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     user_session: Admin = TempSession.shared.get_user_or_create(user=user)
     BotDebugger.shared.info_log(
-        c_user=user_session,
+        admin=user_session,
         title="NEW SESSION",
         text=update.message.text
     )

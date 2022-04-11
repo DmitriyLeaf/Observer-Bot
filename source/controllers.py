@@ -1,5 +1,6 @@
 import os
 import time
+from enum import Enum
 from logging import Logger
 from typing import Optional
 
@@ -145,7 +146,20 @@ class BotDebugger:
 # DBManager
 
 class DBManager:
-    shared: "DBManager" = None
+    shared: 'DBManager' = None
+
+    class DBKeys(Enum):
+        ADMINS = "ADMINS"
+        SERVICES = "SERVICES"
+        REPORTS = "REPORTS"
+
+        @staticmethod
+        def cases() -> ['DBManager.DBKeys']:
+            return list(map(lambda c: c, DBManager.DBKeys))
+
+        @staticmethod
+        def values() -> [str]:
+            return list(map(lambda c: c.value, DBManager.DBKeys))
 
     def __new__(cls, dispatcher: Dispatcher):
         if cls.shared is None:
@@ -156,11 +170,14 @@ class DBManager:
         self.dispatcher: Dispatcher = dispatcher
 
         self.gc: Optional[Client] = None
-        self.logs_spreadsheet: Optional[Spreadsheet] = None
-        self.database_spreadsheet: Optional[Spreadsheet] = None
-        self.logs_sheet: Optional[Worksheet] = None
-        self.database_sheet: Optional[Worksheet] = None
+
         self.logs_queue: set = set()
+        self.logs_spreadsheet: Optional[Spreadsheet] = None
+        self.logs_sheet: Optional[Worksheet] = None
+
+        self.database_spreadsheet: Optional[Spreadsheet] = None
+        self.database_sheets: {DBManager: Optional[Worksheet]} = {}
+        self.is_database_syncing: bool = False
 
         self.dispatcher.run_async(self.authorize_open_spreadsheet)
 
@@ -174,7 +191,7 @@ class DBManager:
             text="Success authorize and open spreadsheet"
         )
         self.get_log_sheet()
-        self.get_database_sheet()
+        self.get_database_sheets()
 
     def get_log_sheet(self):
         try:
@@ -192,8 +209,29 @@ class DBManager:
         finally:
             self.__write_logs_queue()
 
-    def get_database_sheet(self):
-        pass
+    def get_database_sheets(self):
+        if self.is_database_syncing:
+            return
+        self.is_database_syncing = True
+        for sheet_case in self.DBKeys.cases():
+            self.get_db_sheet_by(case=sheet_case)
+        self.is_database_syncing = False
+
+    def get_db_sheet_by(self, case: 'DBManager.DBKeys'):
+        try:
+            sheet = self.database_spreadsheet.worksheet(case.value)
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text=f"Success worksheet by title: {case.value}"
+            )
+            self.database_sheets[case] = sheet
+        except WorksheetNotFound:
+            sheet = self.database_spreadsheet.add_worksheet(case.value, rows=5, cols=5, index=0)
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text=f"Success add worksheet by title: {case.value}"
+            )
+            self.database_sheets[case] = sheet
 
     @staticmethod
     def logs_worksheet_title():
