@@ -62,7 +62,7 @@ class Admin(BaseModel):
 
 class Service(BaseModel):
     def __init__(self):
-        self.id: int = -1
+        self.sid: int = -1
         self.name: str = ""
         self.link: str = ""
         self.is_additional: bool = False
@@ -70,7 +70,8 @@ class Service(BaseModel):
 
 class Report:
     def __init__(self):
-        self.id: int = -1
+        self.rid: int = -1
+        self.sid: int = -1
         self.service_id: int = -1
         self.status: int = -1
         self.duration: int = -1

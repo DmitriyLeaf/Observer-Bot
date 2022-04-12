@@ -1,20 +1,16 @@
 import logging
+import time
+from typing import Optional
+
 import messages as msg
 import constants as const
 
 from models import Admin
 from controllers import TempSession, BotDebugger, DBManager
 
-from telegram import Update, ParseMode, ReplyKeyboardRemove
-from telegram.ext import (
-    Updater,
-    CommandHandler,
-    MessageHandler,
-    Filters,
-    CallbackContext,
-    CallbackQueryHandler,
-)
-
+from telegram import Update, ParseMode, ReplyKeyboardRemove, Bot, Message
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler, \
+    Dispatcher
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -38,6 +34,9 @@ def start(update: Update, context: CallbackContext) -> None:
     DBManager.shared.save_admin(admin)
     result = DBManager.shared.get_admin(admin)
     print(result)
+
+
+def get_admin
 
 
 def stop_audit(update: Update, context: CallbackContext) -> None:
@@ -69,26 +68,67 @@ def start_audit(update: Update, context: CallbackContext) -> None:
 # ---------------------------------------------------------------------------------------
 # Main
 
+is_launching = False
+
+
+def start_launching_process(bot: Bot, dispatcher: Dispatcher):
+    process_message = bot.send_message(
+        chat_id=const.SUPER_ADMIN_ID,
+        text="Bot is setting up ⏳️"
+    )
+    global is_launching
+    is_launching = True
+    dispatcher.run_async(next_launching, process_message)
+
+
+def next_launching(process_message: Message, switch: bool = True):
+    time.sleep(0.3)
+    if not is_launching:
+        process_message.edit_text(
+            text="Launch success ✅️"
+        )
+        return
+    if switch:
+        process_message.edit_text(
+            text="Bot is setting up ⌛️"
+        )
+    else:
+        process_message.edit_text(
+            text="Bot is setting up ⏳️️"
+        )
+    switch = not switch
+    next_launching(process_message, switch)
+
+
+def stop_launching_process():
+    global is_launching
+    is_launching = False
+
 
 def main():
     """Start the bot."""
     updater = Updater(const.BOT_API_KEY)
-
     dispatcher = updater.dispatcher
+
+    # Start the Bot
+    updater.start_polling()
+
+    start_launching_process(updater.bot, dispatcher)
+
+    # Init instances
+    TempSession()
+    msg.TextManager()
+    BotDebugger(dispatcher, logger)
+    DBManager(dispatcher)
+    BotDebugger.shared.start_bot_audition(updater.bot, updater.dispatcher)
+
     dispatcher.add_handler(CommandHandler(const.Command.start.value, start))
     dispatcher.add_handler(CommandHandler(const.Command.start_audit.value, start_audit))
     dispatcher.add_handler(CommandHandler(const.Command.stop_audit.value, stop_audit))
     # dispatcher.add_handler(CommandHandler(const.Command.sos.value, sos))
     # dispatcher.add_handler(CallbackQueryHandler(buttons_action))
 
-    # Init instances
-    TempSession()
-    msg.TextManager()
-    BotDebugger(dispatcher, logger)
-    BotDebugger.shared.start_bot_audition(updater.bot, updater.dispatcher)
-
-    # Start the Bot
-    updater.start_polling()
+    stop_launching_process()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since

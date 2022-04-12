@@ -87,8 +87,6 @@ class BotDebugger:
         self.logger: Logger = logger
         self.delay: Delay = Delay.one
 
-        DBManager(dispatcher)
-
     def start_bot_audition(self, bot: Bot, dispatcher: Dispatcher):
         if self.is_audition:
             self.ping_to_admin()
@@ -182,7 +180,8 @@ class DBManager:
         self.is_database_OK: bool = False
         self.database_statuses: {DBManager.DBKeys: bool} = {}
 
-        self.dispatcher.run_async(self.authorize_open_spreadsheet)
+        # self.dispatcher.run_async(self.authorize_open_spreadsheet)
+        self.authorize_open_spreadsheet()
 
     def authorize_open_spreadsheet(self):
         s_path = os.path.join(os.path.dirname(__file__), 'secrets/watchful-branch-311311-ed09b37b7304.json')
