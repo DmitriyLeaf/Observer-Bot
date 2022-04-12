@@ -36,7 +36,8 @@ def start(update: Update, context: CallbackContext) -> None:
     print(result)
 
 
-def get_admin
+def get_admin():
+    pass
 
 
 def stop_audit(update: Update, context: CallbackContext) -> None:
