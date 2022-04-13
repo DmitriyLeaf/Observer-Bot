@@ -33,15 +33,10 @@ class TempSession:
     def __init__(self):
         self.sessions: {str: Admin} = {}
 
-    def get_admin(self, user: Optional[User], bot: Optional[Bot] = None) -> Optional[Admin]:
+    def get_admin(self, user: Optional[User]) -> Optional[Admin]:
         if user.id in self.sessions:
             l_user = self.sessions[user.id]
             return l_user
-        elif bot is not None:
-            bot.send_message(
-                chat_id=user.id,
-                text=msg.get_user_error()
-            )
         return None
 
     def get_user_or_create(self, user: User) -> Admin:

@@ -36,8 +36,13 @@ def start(update: Update, context: CallbackContext) -> None:
     print(result)
 
 
-def get_admin():
-    pass
+def get_admin(update: Update, context: CallbackContext) -> Optional[Admin]:
+    admin = TempSession.shared.get_admin(update.effective_user)
+    if admin and len(admin.token) > 0:
+        return admin
+    else:
+        # ask access
+        return None
 
 
 def stop_audit(update: Update, context: CallbackContext) -> None:
