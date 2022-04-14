@@ -2,10 +2,10 @@ import logging
 import time
 from typing import Optional
 
+from models import Admin, CallbackModel
 import messages as msg
 import constants as const
-
-from models import Admin
+from constants import Stage
 from controllers import TempSession, BotDebugger, DBManager
 
 from telegram import Update, ParseMode, ReplyKeyboardRemove, Bot, Message
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued"""
     user = update.effective_user
-    user_session: Admin = TempSession.shared.get_user_or_create(user=user)
+    user_session: Admin = get_admin(update, context)
     admin = Admin(aid=user.id, username=user.username)
     print(admin.to_dict())
     print(admin.to_json())
@@ -36,12 +36,59 @@ def start(update: Update, context: CallbackContext) -> None:
     print(result)
 
 
+def buttons_action(update: Update, context: CallbackContext) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+    query.answer(query.data)
+    callback: CallbackModel = CallbackModel.decode(query.data)
+
+    user = update.effective_user
+    user_session: Admin = get_admin(update, context)
+    if user_session is None:
+        BotDebugger.shared.info_log_user(
+            user=user,
+            title="BUTTON ACTION",
+            text=callback.message.value
+        )
+        return
+
+    BotDebugger.shared.info_log(
+        admin=user_session,
+        title="BUTTON ACTION",
+        text=callback.message.value
+    )
+
+    if callback.message == const.MessageKeys.GRANT_ACCESS:
+        # c_user.stage = const.Stage.LOGIN
+        # c_user.sub_stage = const.Stage.FIND_CAR
+        # check_login(update, context)
+        pass
+
+
 def get_admin(update: Update, context: CallbackContext) -> Optional[Admin]:
     admin = TempSession.shared.get_admin(update.effective_user)
     if admin and len(admin.token) > 0:
         return admin
+    elif admin and admin.stage == Stage.WAITING_ACCESS:
+        context.bot.send_message(
+            chat_id=admin.aid,
+            text=msg.access_is_checking(),
+        )
+        return None
     else:
-        # ask access
+        admin = TempSession.shared.append_new_user(update.effective_user)
+        admin.stage = Stage.WAITING_ACCESS
+        context.bot.send_message(
+            chat_id=const.SUPER_ADMIN_ID,
+            text=msg.request_access(admin),
+            reply_markup=msg.admin_access_keyboard(admin),
+            parse_mode=ParseMode.HTML
+        )
+        context.bot.send_message(
+            chat_id=admin.aid,
+            text=msg.access_request_sent(),
+            parse_mode=ParseMode.HTML
+        )
         return None
 
 
@@ -132,7 +179,7 @@ def main():
     dispatcher.add_handler(CommandHandler(const.Command.start_audit.value, start_audit))
     dispatcher.add_handler(CommandHandler(const.Command.stop_audit.value, stop_audit))
     # dispatcher.add_handler(CommandHandler(const.Command.sos.value, sos))
-    # dispatcher.add_handler(CallbackQueryHandler(buttons_action))
+    dispatcher.add_handler(CallbackQueryHandler(buttons_action))
 
     stop_launching_process()
 

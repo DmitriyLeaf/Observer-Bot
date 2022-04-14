@@ -1,35 +1,21 @@
+import os
 import ast
 from enum import Enum
 from typing import Optional
 
+from models import Admin, CallbackModel
+from constants import MessageKeys
+
 from telegram import InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
-import os
 
 
 # ---------------------------------------------------------------------------------------
 # Text Manager
 
+
 class TextManager:
     shared: 'TextManager' = None
     texts_url = os.path.join(os.path.dirname(__file__), 'texts.json')
-
-    class Keys(Enum):
-        EXAMPLE_KEY = "EXAMPLE_KEY"
-        HELLO = "HELLO"
-        HOME = "HOME"
-        CHECKING_ACCESS = "CHECKING_ACCESS"
-        ENTER_LOGIN = "ENTER_LOGIN"
-        LOGIN_RECEIVED = "LOGIN_RECEIVED"
-        ENTER_PASS = "ENTER_PASS"
-        PASS_RECEIVED = "PASS_RECEIVED"
-        CHECKING = "CHECKING"
-        TRY_AGAIN_LOGIN = "TRY_AGAIN_LOGIN"
-        SUCCESS_AUTH = "SUCCESS_AUTH"
-        USER_NOT_FOUND = "USER_NOT_FOUND"
-        SUCCESS = "SUCCESS"
-        TRY_AGAIN = "TRY_AGAIN"
-        SOMETHING_WRONG = "SOMETHING_WRONG"
-        UNSUCCES_USER = "UNSUCCES_USER"
 
     def __new__(cls):
         if cls.shared is None:
@@ -50,49 +36,69 @@ class TextManager:
         f.close()
         return ast.literal_eval(text)
 
-    def text_by_key(self, key: Keys) -> Optional[str]:
+    def text_by_key(self, key: MessageKeys) -> Optional[str]:
         self.get_storage()  # Here is auto update of storage
         return self.texts[key.value]
 
 
 # ---------------------------------------------------------------------------------------
-# Statuses
+# Access
 
-def success_auth() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.SUCCESS_AUTH)
+def request_access(admin: Admin) -> str:
+    return TextManager.shared.text_by_key(MessageKeys.ACCESS_REQUEST).format(
+        admin.aid,
+        admin.username
+    )
 
 
-def user_not_found() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.USER_NOT_FOUND)
-
-
-def login_or_home_keyboard() -> InlineKeyboardMarkup:
+def admin_access_keyboard(admin: Admin) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.TRY_AGAIN_LOGIN),
-                                     callback_data=str(TextManager.Keys.TRY_AGAIN_LOGIN.value))
+                InlineKeyboardButton(
+                    text=TextManager.shared.text_by_key(MessageKeys.GRANT_ACCESS),
+                    callback_data=CallbackModel(
+                        message=MessageKeys.GRANT_ACCESS,
+                        admin=admin
+                    ).encode()
+                )
             ],
             [
-                home_button()
+                InlineKeyboardButton(
+                    text=TextManager.shared.text_by_key(MessageKeys.DENY_ACCESS),
+                    callback_data=CallbackModel(
+                        message=MessageKeys.DENY_ACCESS,
+                        admin=admin
+                    ).encode()
+                )
             ]
         ]
     )
+
+
+def access_is_checking() -> str:
+    return TextManager.shared.text_by_key(MessageKeys.ACCESS_IS_CHECKING)
+
+
+def access_request_sent() -> str:
+    return TextManager.shared.text_by_key(MessageKeys.ACCESS_REQUEST_SENT)
+
+# ACCESS_GRANTED
 
 
 # ---------------------------------------------------------------------------------------
 # Hello
 
 def start() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.HELLO)
+    return TextManager.shared.text_by_key(MessageKeys.HELLO)
 
 
 def start_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.FIND_CAR_BT),
-                                     callback_data=str(TextManager.Keys.FIND_CAR_BT.value))
+                InlineKeyboardButton(text=TextManager.shared.text_by_key(MessageKeys.FIND_CAR_BT),
+                                     callback_data=str(MessageKeys.FIND_CAR_BT.value))
             ],
             [
                 InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.I_DRIVER_BT),

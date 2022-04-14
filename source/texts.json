@@ -1,4 +1,10 @@
 {
   "EXAMPLE_KEY"            : "Example text️. Correct work needs correct formatting!",
-  "HELLO"                  : "Hello ⬇️"
+  "HELLO"                  : "Hello ⬇️",
+  "ACCESS_REQUEST"         : "<b>Access request❗️</b> \nid: {} \nusername: @{}",
+  "GRANT_ACCESS"           : "Grant ✅",
+  "DENY_ACCESS"            : "Deny ⛔️",
+  "ACCESS_REQUEST_SENT"    : "<b>Request to access</b> was send to super admin\n\uD83E\uDD16 I will notify your status",
+  "ACCESS_IS_CHECKING"     : "\uD83E\uDD16 Your access is checking...",
+  "ACCESS_GRANTED"         : "\uD83E\uDD16 Congratulations! <b>Access granted</b>"
 }

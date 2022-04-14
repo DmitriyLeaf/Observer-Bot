@@ -47,19 +47,19 @@ class TempSession:
             return self.append_new_user(user)
 
     def append_new_user(self, user: User) -> Admin:
-        new_user = Admin()
-        self.sessions[user.id] = new_user
-        return new_user
+        admin = Admin.init(user)
+        self.sessions[admin.aid] = admin
+        return admin
 
     def set_stage_for(self, user: User, stage: Stage):
-        if self.get_admin(user=user) is not None:
-            cuser = self.get_admin(user=user)
-            cuser.stage = stage
+        admin = self.get_admin(user=user)
+        if admin is not None:
+            admin.stage = stage
 
     def set_sub_stage_for(self, user: User, sub_stage: Stage):
-        if self.get_admin(user=user) is not None:
-            cuser = self.get_admin(user=user)
-            cuser.sub_stage = sub_stage
+        admin = self.get_admin(user=user)
+        if admin is not None:
+            admin.sub_stage = sub_stage
 
 
 # ---------------------------------------------------------------------------------------
@@ -120,6 +120,13 @@ class BotDebugger:
     def info_log(self, admin: Admin, title: str = "INFO", text: str = ""):
         message = f"\n=== {title}: {text} \n[ {admin.aid}, {admin.username} ] " \
                   f"[ {admin.stage}, {admin.sub_stage} ]\n"
+        self.logger.info(msg=message)
+        message = f"{DT_tool.now()} - INFO - {message}"
+        DBManager.shared.write_to_logs(message)
+
+    def info_log_user(self, user: User, title: str = "INFO", text: str = ""):
+        message = f"\n=== {title}: {text} \n[ {user.id}, {user.username} ] " \
+                  f"[ {user.first_name}, {user.last_name} ]\n"
         self.logger.info(msg=message)
         message = f"{DT_tool.now()} - INFO - {message}"
         DBManager.shared.write_to_logs(message)

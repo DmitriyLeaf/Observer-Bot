@@ -2,7 +2,7 @@ import json
 from enum import Enum
 from typing import Optional
 from datetime import datetime
-from constants import Delay, Stage
+from constants import Delay, Stage, MessageKeys
 
 from telegram import User
 
@@ -59,6 +59,13 @@ class Admin(BaseModel):
         self.stage: Stage = stage
         self.sub_stage: Stage = sub_stage
 
+    @staticmethod
+    def init(user: User) -> 'Admin':
+        return Admin(
+            aid=user.id,
+            username=user.username
+        )
+
 
 class Service(BaseModel):
     def __init__(self):
@@ -77,3 +84,22 @@ class Report:
         self.duration: int = -1
         self.additional: str = ""
         self.datetime: Optional[datetime] = None
+
+
+class CallbackModel(BaseModel):
+    def __init__(self, message: Optional[MessageKeys]=None, admin: Optional[Admin] = None):
+        self.message: Optional[MessageKeys] = message
+        self.admin = admin
+
+    def encode(self) -> str:
+        return f"{self.message} {self.admin.aid}"
+
+    @staticmethod
+    def decode(string: str) -> 'CallbackModel':
+        args = string.split()
+        if len(args) == 2:
+            return CallbackModel(MessageKeys(args[0]), Admin(aid=int(args[1])))
+        elif len(args) == 1:
+            return CallbackModel(MessageKeys(args[0]))
+        else:
+            return CallbackModel()
