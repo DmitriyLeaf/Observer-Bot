@@ -61,10 +61,15 @@ def buttons_action(update: Update, context: CallbackContext) -> None:
     )
 
     if callback.message == const.MessageKeys.GRANT_ACCESS:
-        # c_user.stage = const.Stage.LOGIN
-        # c_user.sub_stage = const.Stage.FIND_CAR
-        # check_login(update, context)
-        pass
+        admin = TempSession.shared.get_admin_by(callback.admin.aid)
+        if admin:
+            admin.token = "✅️"
+            DBManager.shared.save_admin(admin)
+    elif callback.message == const.MessageKeys.DENY_ACCESS:
+        admin = TempSession.shared.get_admin_by(callback.admin.aid)
+        if admin:
+            admin.token = ""
+            DBManager.shared.save_admin(admin)
 
 
 def start_observe(update: Update, context: CallbackContext):

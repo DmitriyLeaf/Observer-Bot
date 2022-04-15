@@ -40,6 +40,12 @@ class TempSession:
             return l_user
         return None
 
+    def get_admin_by(self, aid: int) -> Optional[Admin]:
+        if aid in self.sessions:
+            l_user = self.sessions[aid]
+            return l_user
+        return None
+
     def get_user_or_create(self, user: User) -> Admin:
         if user.id in self.sessions:
             l_user = self.sessions[user.id]
@@ -324,6 +330,7 @@ class DBManager:
         end_coll_letter = chr(len(ws.row_values(1))+65)
         end_row_num = len(ws.col_values(1))
         if end_row_num < 2:
+            self.database_statuses[case] = True
             return []
         ranges = [f'A2:{end_coll_letter}{end_row_num}']
         rows = ws.batch_get(ranges)[0]

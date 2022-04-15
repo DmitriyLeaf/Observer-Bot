@@ -64,9 +64,12 @@ class Admin(BaseModel):
         self.aid: int = int(aid)
         self.username: str = username
         self.token: str = token
-        self.observing: bool = observing
-        self.delay: Delay = delay
-        self.critical_only: bool = critical_only
+        self.observing: bool = bool(observing)
+        if type(delay) is Delay:
+            self.delay: Delay = delay
+        else:
+            self.delay: Delay = Delay(int(delay))
+        self.critical_only: bool = bool(critical_only)
         self.stage: Stage = stage
         self.sub_stage: Stage = sub_stage
 
