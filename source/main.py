@@ -67,6 +67,38 @@ def buttons_action(update: Update, context: CallbackContext) -> None:
         pass
 
 
+def start_observe(update: Update, context: CallbackContext):
+    """Send a message when the command /start_observe is issued"""
+    in_development(update, context)
+
+
+def stop_observe(update: Update, context: CallbackContext):
+    """Send a message when the command /stop_observe is issued"""
+    in_development(update, context)
+
+
+def add_service(update: Update, context: CallbackContext):
+    """Send a message when the command /add_service is issued"""
+    in_development(update, context)
+
+
+def select_service(update: Update, context: CallbackContext):
+    """Send a message when the command /select_service is issued"""
+    in_development(update, context)
+
+
+def change_delay(update: Update, context: CallbackContext):
+    """Send a message when the command /change_delay is issued"""
+    in_development(update, context)
+
+
+def in_development(update: Update, context: CallbackContext):
+    context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text=msg.in_development()
+    )
+
+
 def get_admin(update: Update, context: CallbackContext) -> Optional[Admin]:
     admin = TempSession.shared.get_admin(update.effective_user)
     if admin and len(admin.token) > 0:
@@ -180,7 +212,11 @@ def main():
     dispatcher.add_handler(CommandHandler(const.Command.start.value, start))
     dispatcher.add_handler(CommandHandler(const.Command.start_audit.value, start_audit))
     dispatcher.add_handler(CommandHandler(const.Command.stop_audit.value, stop_audit))
-    # dispatcher.add_handler(CommandHandler(const.Command.sos.value, sos))
+    dispatcher.add_handler(CommandHandler(const.Command.start_observe.value, start_observe))
+    dispatcher.add_handler(CommandHandler(const.Command.stop_observe.value, stop_observe))
+    dispatcher.add_handler(CommandHandler(const.Command.add_service.value, add_service))
+    dispatcher.add_handler(CommandHandler(const.Command.select_service.value, select_service))
+    dispatcher.add_handler(CommandHandler(const.Command.change_delay.value, change_delay))
     dispatcher.add_handler(CallbackQueryHandler(buttons_action))
 
     stop_launching_process()

@@ -1,5 +1,6 @@
 {
   "EXAMPLE_KEY"            : "Example text️. Correct work needs correct formatting!",
+  "IN_DEVELOPMENT"         : "\uD83E\uDD16 Command in development ⚒",
   "HELLO"                  : "Hello ⬇️",
   "ACCESS_REQUEST"         : "<b>Access request❗️</b> \nid: {} \nusername: @{}",
   "GRANT_ACCESS"           : "Grant ✅",

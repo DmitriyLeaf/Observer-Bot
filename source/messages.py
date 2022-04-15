@@ -83,7 +83,13 @@ def access_is_checking() -> str:
 def access_request_sent() -> str:
     return TextManager.shared.text_by_key(MessageKeys.ACCESS_REQUEST_SENT)
 
-# ACCESS_GRANTED
+
+def access_granted() -> str:
+    return TextManager.shared.text_by_key(MessageKeys.ACCESS_GRANTED)
+
+
+def in_development() -> str:
+    return TextManager.shared.text_by_key(MessageKeys.IN_DEVELOPMENT)
 
 
 # ---------------------------------------------------------------------------------------
