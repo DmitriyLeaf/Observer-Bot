@@ -55,3 +55,20 @@ class MessageKeys(str, Enum):
     ACCESS_IS_CHECKING = "ACCESS_IS_CHECKING"
     ACCESS_GRANTED = "ACCESS_GRANTED"
     IN_DEVELOPMENT = "IN_DEVELOPMENT"
+    HOME = "HOME"
+    HOME_BUTTON = "HOME_BUTTON"
+    START_OBSERVE = "START_OBSERVE"
+    STOP_OBSERVE = "STOP_OBSERVE"
+    ADD_SERVICE = "ADD_SERVICE"
+    SELECT_SERVICE = "SELECT_SERVICE"
+    CHANGE_DELAY = "CHANGE_DELAY"
+
+    @classmethod
+    def home_cases(cls) -> ['MessageKeys']:
+        return [
+            cls.START_OBSERVE,
+            cls.STOP_OBSERVE,
+            cls.ADD_SERVICE,
+            cls.SELECT_SERVICE,
+            cls.CHANGE_DELAY
+        ]

@@ -1,11 +1,20 @@
 {
-  "EXAMPLE_KEY"            : "Example text️. Correct work needs correct formatting!",
+  "EXAMPLE_KEY"            : "Example text. Correct work needs correct formatting!",
   "IN_DEVELOPMENT"         : "\uD83E\uDD16 Command in development ⚒",
+
   "HELLO"                  : "Hello ⬇️",
+  "HOME"                   : "\uD83E\uDD16 How can I help you?",
+  "HOME_BUTTON"            : "Home \uD83C\uDDFA\uD83C\uDDE6",
+  "START_OBSERVE"          : "\uD83D\uDE80 Start observing",
+  "STOP_OBSERVE"           : "\uD83D\uDED1 Stop observing",
+  "ADD_SERVICE"            : "➕ Add new service to observe",
+  "SELECT_SERVICE"         : "☑️ Select services to observe",
+  "CHANGE_DELAY"           : "⏰ Change observing delay",
+
   "ACCESS_REQUEST"         : "<b>Access request❗️</b> \nid: {} \nusername: @{}",
   "GRANT_ACCESS"           : "Grant ✅",
   "DENY_ACCESS"            : "Deny ⛔️",
   "ACCESS_REQUEST_SENT"    : "<b>Request to access</b> was send to super admin\n\uD83E\uDD16 I will notify your status",
   "ACCESS_IS_CHECKING"     : "\uD83E\uDD16 Your access is checking...",
-  "ACCESS_GRANTED"         : "\uD83E\uDD16 Congratulations! <b>Access granted</b>"
+  "ACCESS_GRANTED"         : "\uD83E\uDD16 Congratulations! <b>Access granted</b> ✅"
 }

@@ -20,17 +20,23 @@ logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued"""
-    user = update.effective_user
-    user_session: Admin = get_admin(update, context)
-    admin = Admin(aid=user.id, username=user.username)
-    # print(admin.to_dict())
-    # print(admin.to_json())
-
-    BotDebugger.shared.info_log(
-        admin=admin,
-        title="NEW SESSION",
-        text=update.message.text
+    BotDebugger.shared.info_log_user(
+        user=update.effective_user,
+        title="BUTTON ACTION",
+        text=update.message.text if update.message is not None else "callback"
     )
+
+    user_session: Admin = get_admin(update, context)
+
+    if user_session is None:
+        return
+
+    context.bot.send_message(
+        chat_id=user_session.aid,
+        text=msg.home(),
+        reply_markup=msg.home_keyboard()
+    )
+
     # DBManager.shared.save_admin(admin)
     # result = DBManager.shared.get_admin(admin)
     # print("R:", result)
@@ -38,38 +44,50 @@ def start(update: Update, context: CallbackContext) -> None:
     # result = DBManager.shared.get_admins()
 
 
-def buttons_action(update: Update, context: CallbackContext) -> None:
+def buttons_action(update: Update, context: CallbackContext):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer(query.data)
     callback: CallbackModel = CallbackModel.decode(query.data)
 
-    user = update.effective_user
-    user_session: Admin = get_admin(update, context)
-    if user_session is None:
-        BotDebugger.shared.info_log_user(
-            user=user,
-            title="BUTTON ACTION",
-            text=callback.message.value
-        )
-        return
-
-    BotDebugger.shared.info_log(
-        admin=user_session,
+    BotDebugger.shared.info_log_user(
+        user=update.effective_user,
         title="BUTTON ACTION",
         text=callback.message.value
     )
 
+    user_session: Admin = get_admin(update, context)
+    if user_session is None:
+        return
+
     if callback.message == const.MessageKeys.GRANT_ACCESS:
         admin = TempSession.shared.get_admin_by(callback.admin.aid)
-        if admin:
-            admin.token = "✅️"
-            DBManager.shared.save_admin(admin)
+        grant_access(update, context, admin)
     elif callback.message == const.MessageKeys.DENY_ACCESS:
         admin = TempSession.shared.get_admin_by(callback.admin.aid)
-        if admin:
-            admin.token = ""
-            DBManager.shared.save_admin(admin)
+        deny_access(update, context, admin)
+    elif callback.message == const.MessageKeys.HOME_BUTTON:
+        start(update, context)
+
+
+def grant_access(update: Update, context: CallbackContext, admin: Optional[Admin] = None):
+    if admin is None:
+        return
+    admin.token = "✅️"
+    DBManager.shared.save_admin(admin)
+    context.bot.send_message(
+        chat_id=admin.aid,
+        text=msg.access_granted(),
+        parse_mode=ParseMode.HTML,
+        reply_markup=msg.go_home_keyboard()
+    )
+
+
+def deny_access(update: Update, context: CallbackContext, admin: Optional[Admin] = None):
+    if admin is None:
+        return
+    admin.token = ""
+    DBManager.shared.save_admin(admin)
 
 
 def start_observe(update: Update, context: CallbackContext):

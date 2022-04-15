@@ -93,169 +93,33 @@ def in_development() -> str:
 
 
 # ---------------------------------------------------------------------------------------
-# Hello
+# Home
 
-def start() -> str:
-    return TextManager.shared.text_by_key(MessageKeys.HELLO)
+def home() -> str:
+    return TextManager.shared.text_by_key(MessageKeys.HOME)
 
 
-def start_keyboard() -> InlineKeyboardMarkup:
+def home_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(MessageKeys.FIND_CAR_BT),
-                                     callback_data=str(MessageKeys.FIND_CAR_BT.value))
-            ],
-            [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.I_DRIVER_BT),
-                                     callback_data=str(TextManager.Keys.I_DRIVER_BT.value))
-            ]
+            [InlineKeyboardButton(text=TextManager.shared.text_by_key(case), callback_data=str(case.value))]
+            for case in MessageKeys.home_cases()
         ]
     )
 
 
 def home_button() -> InlineKeyboardButton:
     return InlineKeyboardButton(
-        text=TextManager.shared.text_by_key(TextManager.Keys.HOME),
-        callback_data=str(TextManager.Keys.HOME.value)
+        text=TextManager.shared.text_by_key(MessageKeys.HOME_BUTTON),
+        callback_data=str(MessageKeys.HOME_BUTTON.value)
     )
 
 
-def home_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([[
-        home_button()
-    ]])
-
-
-def in_progress() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.CHECKING)
-
-
-def some_wrong() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.SOMETHING_WRONG)
-
-
-def success() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.SUCCESS)
-
-
-# ---------------------------------------------------------------------------------------
-# Login
-
-def checking_access() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.CHECKING_ACCESS)
-
-
-def enter_login() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.ENTER_LOGIN)
-
-
-def login_received() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.LOGIN_RECEIVED)
-
-
-def enter_password() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.ENTER_PASS)
-
-
-def password_received() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.PASS_RECEIVED)
-
-
-def get_user_error() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.UNSUCCES_USER)
-
-
-# ---------------------------------------------------------------------------------------
-# Search car
-
-
-def car_info() -> str:
-    print(TextManager.shared)
-    return TextManager.shared.text_by_key(TextManager.Keys.CAR_INFO)
-
-
-def enter_car_code_to_find() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.ENTER_CAR_CODE_FIND)
-
-
-def car_not_found() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.CAR_NOT_FOUND)
-
-
-def update_car_info_keyboard() -> InlineKeyboardMarkup:
+def go_home_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.UPDATE_INFO),
-                                     callback_data=str(TextManager.Keys.UPDATE_INFO.value))
-            ],
             [
                 home_button()
             ]
         ]
-    )
-
-
-# ---------------------------------------------------------------------------------------
-# I driver car
-
-def enter_self_car_code() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.ENTER_CAR_CODE_SELF)
-
-
-def driver_instruction() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.INSTRUCTION)
-
-
-def driver_instruction_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.START),
-                                     callback_data=str(TextManager.Keys.START.value))
-            ],
-            [
-                home_button()
-            ]
-        ]
-    )
-
-
-def ask_location() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.ASK_SHARE_LOCATION)
-
-
-def location_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [
-                KeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.SHARE_LOCATION),
-                               request_location=True)
-            ]
-        ],
-        resize_keyboard=True
-    )
-
-
-def try_again() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.TRY_AGAIN)
-
-
-def timer_is_set() -> str:
-    return TextManager.shared.text_by_key(TextManager.Keys.TIMER_IS_SET)
-
-
-# ---------------------------------------------------------------------------------------
-# Example
-
-def ask_phone_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [
-                KeyboardButton(text=TextManager.shared.text_by_key(TextManager.Keys.EXAMPLE_KEY),
-                               request_contact=True)
-            ]
-        ],
-        resize_keyboard=True
     )
