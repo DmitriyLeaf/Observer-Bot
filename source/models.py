@@ -86,7 +86,7 @@ class Service(BaseModel):
         self.is_additional: bool = False
 
 
-class Report:
+class Report(BaseModel):
     def __init__(self):
         self.rid: int = -1
         self.sid: int = -1

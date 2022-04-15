@@ -154,10 +154,12 @@ class DBManager:
         REPORTS = "REPORTS"
 
         def keys_list(self) -> list:
-            if self == DBManager.DBKeys.ADMINS:
+            if self == self.ADMINS:
                 return list(Admin().__dict__.keys())
-            else:
-                return list()
+            if self == self.REPORTS:
+                return list(Report().__dict__.keys())
+            if self == self.SERVICES:
+                return list(Service().__dict__.keys())
 
         def decorated(self):
             max_len = len(max(self.__class__.values(), key=len))
@@ -274,6 +276,9 @@ class DBManager:
                f"{detailed}</code>"
 
     def save_admin(self, admin: Admin):
+        self.dispatcher.run_async(self.__save_admin, admin)
+
+    def __save_admin(self, admin: Admin):
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
         cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
         self.synced_data[DBManager.DBKeys.ADMINS] = admin
