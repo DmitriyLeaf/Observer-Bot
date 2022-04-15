@@ -32,10 +32,10 @@ def start(update: Update, context: CallbackContext) -> None:
         text=update.message.text
     )
     # DBManager.shared.save_admin(admin)
-    result = DBManager.shared.get_admin(admin)
-    print("R:", result)
-    print("R:", result.to_dict())
-    result = DBManager.shared.get_admins()
+    # result = DBManager.shared.get_admin(admin)
+    # print("R:", result)
+    # print("R:", result.to_dict())
+    # result = DBManager.shared.get_admins()
 
 
 def buttons_action(update: Update, context: CallbackContext) -> None:

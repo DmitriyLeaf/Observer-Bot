@@ -7,7 +7,7 @@ from typing import Optional
 
 import messages as msg
 from constants import *
-from models import Admin
+from models import Admin, Report, Service
 from constants import Stage
 from tools import DateTime as DT_tool, EnumTool
 
@@ -32,6 +32,7 @@ class TempSession:
 
     def __init__(self):
         self.sessions: {str: Admin} = {}
+        DBManager.db_sync_completion = self.sync_sessions
 
     def get_admin(self, user: Optional[User]) -> Optional[Admin]:
         if user.id in self.sessions:
@@ -49,17 +50,13 @@ class TempSession:
     def append_new_user(self, user: User) -> Admin:
         admin = Admin.init(user)
         self.sessions[admin.aid] = admin
+        DBManager.shared.save_admin(admin)
         return admin
 
-    def set_stage_for(self, user: User, stage: Stage):
-        admin = self.get_admin(user=user)
-        if admin is not None:
-            admin.stage = stage
-
-    def set_sub_stage_for(self, user: User, sub_stage: Stage):
-        admin = self.get_admin(user=user)
-        if admin is not None:
-            admin.sub_stage = sub_stage
+    def sync_sessions(self):
+        adm_list = DBManager.shared.synced_data[DBManager.DBKeys.ADMINS]
+        ids = [adm.aid for adm in adm_list]
+        self.sessions = dict(zip(ids, adm_list))
 
 
 # ---------------------------------------------------------------------------------------
@@ -149,6 +146,7 @@ class BotDebugger:
 
 class DBManager:
     shared: 'DBManager' = None
+    db_sync_completion = None
 
     class DBKeys(EnumTool):
         ADMINS = "ADMINS"
@@ -165,6 +163,14 @@ class DBManager:
             max_len = len(max(self.__class__.values(), key=len))
             diff = max_len - len(self.value)
             return self.value + (" "*diff)
+
+        def model_type(self):
+            if self == self.ADMINS:
+                return Admin
+            if self == self.REPORTS:
+                return Report
+            if self == self.SERVICES:
+                return Service
 
     def __new__(cls, dispatcher: Dispatcher):
         if cls.shared is None:
@@ -236,7 +242,11 @@ class DBManager:
         if not self.can_start_db_sync():
             return
 
-        self.synced_data[self.DBKeys.ADMINS] = self.get_admins()
+        for case in DBManager.DBKeys:
+            self.synced_data[case] = self.get_models_of(case)
+
+        if DBManager.db_sync_completion:
+            DBManager.db_sync_completion()
 
         self.stop_db_sync()
 
@@ -266,6 +276,7 @@ class DBManager:
     def save_admin(self, admin: Admin):
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
         cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
+        self.synced_data[DBManager.DBKeys.ADMINS] = admin
         if cell is not None:
             ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
         else:
@@ -300,6 +311,19 @@ class DBManager:
         return [Admin.decode_list(row) for row in rows]
         # print(admins)
         # [print(admin.to_dict()) for admin in admins]
+
+    def get_models_of(self, case: 'DBManager.DBKeys') -> list:
+        self.database_statuses[case] = False
+
+        ws: Worksheet = self.database_sheets[case]
+        end_coll_letter = chr(len(ws.row_values(1))+65)
+        end_row_num = len(ws.col_values(1))
+        if end_row_num < 2:
+            return []
+        ranges = [f'A2:{end_coll_letter}{end_row_num}']
+        rows = ws.batch_get(ranges)[0]
+        self.database_statuses[case] = True
+        return [case.model_type().decode_list(row) for row in rows]
 
     # ---------------------------------------------------------------------------------------
     # LOGS
