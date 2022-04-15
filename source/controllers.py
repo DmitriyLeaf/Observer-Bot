@@ -161,6 +161,11 @@ class DBManager:
             else:
                 return list()
 
+        def decorated(self):
+            max_len = len(max(self.__class__.values(), key=len))
+            diff = max_len - len(self.value)
+            return self.value + (" "*diff)
+
     def __new__(cls, dispatcher: Dispatcher):
         if cls.shared is None:
             cls.shared: DBManager = super(DBManager, cls).__new__(cls)
@@ -181,6 +186,7 @@ class DBManager:
         self.is_database_syncing: bool = False
         self.is_database_OK: bool = False
         self.database_statuses: {DBManager.DBKeys: bool} = {}
+        self.synced_data: {DBManager.DBKeys: list} = {}
 
         # self.dispatcher.run_async(self.authorize_open_spreadsheet)
         self.authorize_open_spreadsheet()
@@ -196,16 +202,16 @@ class DBManager:
         )
         self.get_log_sheet()
         self.get_database_sheets()
+        self.sync_database_data()
 
     def get_database_sheets(self):
-        if self.is_database_syncing:
+        if not self.can_start_db_sync():
             return
-        self.is_database_syncing = True
-        self.is_database_OK = False
-        for sheet_case in self.DBKeys.cases(self.DBKeys):
+
+        for sheet_case in self.DBKeys.cases():
             self.get_db_sheet_by(case=sheet_case)
-        self.is_database_syncing = False
-        self.is_database_OK = True
+
+        self.stop_db_sync()
 
     def get_db_sheet_by(self, case: 'DBManager.DBKeys'):
         self.database_statuses[case] = False
@@ -226,11 +232,32 @@ class DBManager:
             sheet.insert_rows(values=[case.keys_list()], row=1)
         self.database_statuses[case] = True
 
+    def sync_database_data(self):
+        if not self.can_start_db_sync():
+            return
+
+        self.synced_data[self.DBKeys.ADMINS] = self.get_admins()
+
+        self.stop_db_sync()
+
+    def can_start_db_sync(self) -> bool:
+        if self.is_database_syncing:
+            return False
+        self.is_database_syncing = True
+        self.is_database_OK = False
+        return True
+
+    def stop_db_sync(self):
+        self.is_database_syncing = False
+        self.is_database_OK = True
+
     def get_db_status_str(self) -> str:
         detailed = ""
         for case in DBManager.DBKeys:
+            count = int_to_emoji(len(self.synced_data[case])) if case in self.synced_data else int_to_emoji(0)
             detailed += f"    {'🟢' if case in self.database_statuses and self.database_statuses[case] else '🔴'} " \
-                        f"{case.value}\n"
+                        f"{case.decorated()} " \
+                        f"{count} \n"
         return f"🗄 Database: \n<code>    {'🟡' if DBManager.shared.is_database_syncing else '🟢'} sync\n" \
                f"    {'🟢' if DBManager.shared.is_database_OK else '🔴'} OK\n" \
                f"    {'🟢' if self.is_logs_OK else '🔴'} LOGS\n" \
@@ -249,14 +276,30 @@ class DBManager:
         cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
         if cell is None:
             return None
-        values = ws.row_values(cell.row)
-        keys = Admin().__dict__.keys()
-        a_dict = dict(zip(keys, values))
+        values: list = ws.row_values(cell.row)
+        # keys = Admin().__dict__.keys()
+        # a_dict = dict(zip(keys, values))
         try:
-            adm = Admin.decode_dict(Admin, a_dict)
+            adm = Admin.decode_list(values)
             return adm
         except:
+            print("ERR")
             return None
+
+    def get_admins(self) -> [Admin]:
+        self.database_statuses[self.DBKeys.ADMINS] = False
+
+        ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
+        end_coll_letter = Admin.KeysId.last().to_char()
+        end_row_num = len(ws.col_values(1))
+        ranges = [f'A2:{end_coll_letter}{end_row_num}']
+        # print(ranges)
+        rows = ws.batch_get(ranges)[0]
+        self.database_statuses[self.DBKeys.ADMINS] = True
+        # print(rows)
+        return [Admin.decode_list(row) for row in rows]
+        # print(admins)
+        # [print(admin.to_dict()) for admin in admins]
 
     # ---------------------------------------------------------------------------------------
     # LOGS
@@ -302,3 +345,9 @@ class DBManager:
         for message in self.logs_queue:
             self.__write_to_logs(message)
         self.logs_queue = set()
+
+
+def int_to_emoji(num) -> str:
+    e_list = {'0': '0️⃣', '1': '1️⃣', '2': '2️⃣', '3': '3️⃣', '4': '4️⃣',
+              '5': '5️⃣', '6': '6️⃣', '7': '7️⃣', '8': '8️⃣', '9': '9️⃣'}
+    return ''.join([e_list[k] for k in str(num)])

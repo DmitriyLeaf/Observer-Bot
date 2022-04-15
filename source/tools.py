@@ -7,20 +7,24 @@ from datetime import datetime
 class DateTime:
     kiev_tz = pytz.timezone('Europe/Kiev')
 
-    @staticmethod
-    def now():
-        return datetime.now(tz=DateTime.kiev_tz)
+    @classmethod
+    def now(cls):
+        return datetime.now(tz=cls.kiev_tz)
 
-    @staticmethod
-    def now_day():
-        return DateTime.now().date()
+    @classmethod
+    def now_day(cls):
+        return cls.now().date()
 
 
 class EnumTool(Enum):
-    @staticmethod
+    @classmethod
     def cases(cls):
         return list(map(lambda c: c, cls))
 
-    @staticmethod
+    @classmethod
     def values(cls) -> [str]:
         return list(map(lambda c: c.value, cls))
+
+    @classmethod
+    def last(cls):
+        return cls.cases()[-1]

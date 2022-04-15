@@ -23,17 +23,19 @@ def start(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     user_session: Admin = get_admin(update, context)
     admin = Admin(aid=user.id, username=user.username)
-    print(admin.to_dict())
-    print(admin.to_json())
+    # print(admin.to_dict())
+    # print(admin.to_json())
 
     BotDebugger.shared.info_log(
         admin=admin,
         title="NEW SESSION",
         text=update.message.text
     )
-    DBManager.shared.save_admin(admin)
+    # DBManager.shared.save_admin(admin)
     result = DBManager.shared.get_admin(admin)
-    print(result)
+    print("R:", result)
+    print("R:", result.to_dict())
+    result = DBManager.shared.get_admins()
 
 
 def buttons_action(update: Update, context: CallbackContext) -> None:
