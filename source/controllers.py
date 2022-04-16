@@ -7,7 +7,7 @@ from typing import Optional
 
 import messages as msg
 from constants import *
-from models import Admin, Report, Service
+from models import Admin, Report, Service, BaseModel
 from constants import Stage
 from tools import DateTime as DT_tool, EnumTool
 
@@ -336,6 +336,30 @@ class DBManager:
         rows = ws.batch_get(ranges)[0]
         self.database_statuses[case] = True
         return [case.model_type().decode_list(row) for row in rows]
+
+    def __save_model_of(self, case: 'DBManager.DBKeys', model: BaseModel):
+        ws: Worksheet = self.database_sheets[case]
+        cell: Cell = ws.find(str(model.get_id()), in_column=Admin.KeysId.aid)
+        self.synced_data[DBManager.DBKeys.ADMINS] = admin
+        if cell is not None:
+            ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
+        else:
+            ws.insert_rows(values=[admin.to_list()], row=len(ws.col_values(1))+1)
+
+    def get_admin(self, admin: Admin) -> Optional[Admin]:
+        ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
+        cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
+        if cell is None:
+            return None
+        values: list = ws.row_values(cell.row)
+        # keys = Admin().__dict__.keys()
+        # a_dict = dict(zip(keys, values))
+        try:
+            adm = Admin.decode_list(values)
+            return adm
+        except:
+            print("ERR")
+            return None
 
     # ---------------------------------------------------------------------------------------
     # LOGS

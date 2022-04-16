@@ -9,6 +9,9 @@ from telegram import User
 
 
 class BaseModel:
+    class KeysId(int, EnumTool):
+        kid = 0
+
     def to_json(self) -> str:
         return json.dumps(self, indent=4, default=lambda o: o.__dict__)
 
@@ -34,6 +37,24 @@ class BaseModel:
         keys = cls().__dict__.keys()
         dct = dict(zip(keys, lst))
         return cls.decode_dict(dct)
+
+    def get_id(self) -> int:
+        s_type = type(self)
+        if s_type == Admin:
+            return self.aid
+        elif s_type == Service:
+            return self.sid
+        elif s_type == Report:
+            return self.rid
+
+    def get_key_id(self) -> KeysId:
+        s_type = type(self)
+        if s_type == Admin:
+            return self.KeysId.aid
+        elif s_type == Service:
+            return self.KeysId.sid
+        elif s_type == Report:
+            return self.KeysId.rid
 
 
 class Admin(BaseModel):
@@ -82,22 +103,52 @@ class Admin(BaseModel):
 
 
 class Service(BaseModel):
-    def __init__(self):
-        self.sid: int = -1
-        self.name: str = ""
-        self.link: str = ""
-        self.is_additional: bool = False
+    class KeysId(int, EnumTool):
+        sid = 0
+        name = 1
+        link = 2
+        is_additional = 3
+
+    def __init__(
+            self,
+            sid: int = -1,
+            name: str = "",
+            link: str = "",
+            is_additional: bool = False
+    ):
+        self.sid: int = int(sid)
+        self.name: str = name
+        self.link: str = link
+        self.is_additional: bool = bool(is_additional)
 
 
 class Report(BaseModel):
-    def __init__(self):
-        self.rid: int = -1
-        self.sid: int = -1
-        self.service_id: int = -1
-        self.status: int = -1
-        self.duration: int = -1
-        self.additional: str = ""
-        self.datetime: Optional[datetime] = None
+    class KeysId(int, EnumTool):
+        rid = 0
+        sid = 1
+        service_id = 2
+        status = 3
+        duration = 4
+        additional = 5
+        date_time = 6
+
+    def __init__(
+            self,
+            rid: int = -1,
+            sid: int = -1,
+            service_id: int = -1,
+            status: int = -1,
+            duration: int = -1,
+            additional: str = "",
+            date_time: Optional[datetime] = None
+    ):
+        self.rid: int = int(rid)
+        self.sid: int = int(sid)
+        self.service_id: int = int(service_id)
+        self.status: int = int(status)
+        self.duration: int = int(duration)
+        self.additional: str = additional
+        self.date_time: Optional[datetime] = date_time
 
 
 class CallbackModel(BaseModel):
