@@ -30,7 +30,7 @@ endif
 # DOCKER
 
 connect_aws:
-	ssh -i "aws_pkey/HomeKey.pem" ubuntu@ec2-18-156-121-35.eu-central-1.compute.amazonaws.com
+	ssh -i "source/secrets/misu-bot.pem" ubuntu@ec2-3-121-199-186.eu-central-1.compute.amazonaws.com
 
 doc_build:
 	-sudo docker stop misu_bot

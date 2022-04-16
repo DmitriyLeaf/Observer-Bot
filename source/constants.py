@@ -9,6 +9,23 @@ BOT_STATE = os.getenv("BOT_STATE")
 LOGS_DB_NAME = 'Logs'
 DATABASE_NAME = 'Database'
 
+DEV_LOGS_DB_NAME = 'Logs Dev'
+DEV_DATABASE_NAME = 'Database Dev'
+
+
+def logs_db_name() -> str:
+    if BOT_STATE == 'Dev':
+        return DEV_LOGS_DB_NAME
+    else:
+        return LOGS_DB_NAME
+
+
+def database_name() -> str:
+    if BOT_STATE == 'Dev':
+        return DEV_DATABASE_NAME
+    else:
+        return DATABASE_NAME
+
 
 class Delay(int, Enum):
     quarter = 15

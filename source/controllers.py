@@ -12,7 +12,7 @@ from constants import Stage
 from tools import DateTime as DT_tool, EnumTool
 
 import gspread
-from gspread import Spreadsheet, Worksheet, Client, WorksheetNotFound, Cell
+from gspread import Spreadsheet, Worksheet, Client, WorksheetNotFound, Cell, SpreadsheetNotFound
 
 from telegram.ext.utils.promise import Promise
 from telegram import User, Bot, ParseMode
@@ -208,8 +208,15 @@ class DBManager:
     def authorize_open_spreadsheet(self):
         s_path = os.path.join(os.path.dirname(__file__), 'secrets/watchful-branch-311311-ed09b37b7304.json')
         self.gc = gspread.service_account(s_path)
-        self.logs_spreadsheet = self.gc.open(LOGS_DB_NAME)
-        self.database_spreadsheet = self.gc.open(DATABASE_NAME)
+        try:
+            self.logs_spreadsheet = self.gc.open(logs_db_name())
+            self.database_spreadsheet = self.gc.open(database_name())
+        except SpreadsheetNotFound:
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text="ERROR exception SpreadsheetNotFound"
+            )
+            return
         BotDebugger.shared.info_log_simple(
             title="DB MANAGER",
             text="Success authorize and open spreadsheet"
