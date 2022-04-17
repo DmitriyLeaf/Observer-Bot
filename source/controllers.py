@@ -294,7 +294,7 @@ class DBManager:
     def __save_admin(self, admin: Admin):
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
         cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
-        self.synced_data[DBManager.DBKeys.ADMINS] = admin
+        self.synced_data[DBManager.DBKeys.ADMINS][admin.aid] = admin
         if cell is not None:
             ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
         else:
@@ -347,11 +347,11 @@ class DBManager:
     def __save_model_of(self, case: 'DBManager.DBKeys', model: BaseModel):
         ws: Worksheet = self.database_sheets[case]
         cell: Cell = ws.find(str(model.get_id()), in_column=Admin.KeysId.aid)
-        self.synced_data[DBManager.DBKeys.ADMINS] = admin
+        self.synced_data[DBManager.DBKeys.ADMINS] = model
         if cell is not None:
-            ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
+            ws.update(f'A{cell.row}:{cell.row}', [model.to_list()])
         else:
-            ws.insert_rows(values=[admin.to_list()], row=len(ws.col_values(1))+1)
+            ws.insert_rows(values=[model.to_list()], row=len(ws.col_values(1))+1)
 
     def get_admin(self, admin: Admin) -> Optional[Admin]:
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
