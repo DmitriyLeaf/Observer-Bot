@@ -83,7 +83,7 @@ class BotDebugger:
         self.start_time = DT_tool.now()
         self.dispatcher: Dispatcher = dispatcher
         self.logger: Logger = logger
-        self.delay: Delay = Delay.one
+        self.delay: Delay = Delay.six
 
     def start_bot_audition(self, bot: Bot, dispatcher: Dispatcher):
         if self.is_audition:
@@ -259,6 +259,10 @@ class DBManager:
 
         for case in DBManager.DBKeys:
             self.synced_data[case] = self.get_models_of(case)
+            BotDebugger.shared.info_log_simple(
+                title="DB MANAGER",
+                text=f"Syncing db {case.value} {len(self.synced_data[case])}"
+            )
 
         if DBManager.db_sync_completion:
             DBManager.db_sync_completion()
@@ -270,11 +274,22 @@ class DBManager:
             return False
         self.is_database_syncing = True
         self.is_database_OK = False
+
+        BotDebugger.shared.info_log_simple(
+            title="DB MANAGER",
+            text=f"Start >> sync database"
+        )
+
         return True
 
     def stop_db_sync(self):
         self.is_database_syncing = False
         self.is_database_OK = True
+
+        BotDebugger.shared.info_log_simple(
+            title="DB MANAGER",
+            text=f"Stop || sync database"
+        )
 
     def get_db_status_str(self) -> str:
         detailed = ""
@@ -294,11 +309,12 @@ class DBManager:
     def __save_admin(self, admin: Admin):
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
         cell: Cell = ws.find(str(admin.aid), in_column=Admin.KeysId.aid)
-        self.synced_data[DBManager.DBKeys.ADMINS][admin.aid] = admin
+        # self.synced_data[DBManager.DBKeys.ADMINS][admin.aid] = admin
         if cell is not None:
             ws.update(f'A{cell.row}:{cell.row}', [admin.to_list()])
         else:
             ws.insert_rows(values=[admin.to_list()], row=len(ws.col_values(1))+1)
+        self.sync_database_data()
 
     def get_admin(self, admin: Admin) -> Optional[Admin]:
         ws: Worksheet = self.database_sheets[self.DBKeys.ADMINS]
