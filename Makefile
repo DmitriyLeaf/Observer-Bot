@@ -30,7 +30,11 @@ endif
 # DOCKER
 
 connect_aws:
-	ssh -i "source/secrets/misu-bot.pem" ubuntu@ec2-3-121-199-186.eu-central-1.compute.amazonaws.com
+ifdef dns
+	ssh -i "source/secrets/misu-bot.pem" dns
+else
+	$(info ***** Public DNS of instance is NOT provided! *****)
+endif
 
 doc_build:
 	-sudo docker stop misu_bot
