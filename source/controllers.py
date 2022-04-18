@@ -292,6 +292,7 @@ class DBManager:
         )
 
     def get_db_status_str(self) -> str:
+        self.sync_database_data()
         detailed = ""
         for case in DBManager.DBKeys:
             count = int_to_emoji(len(self.synced_data[case])) if case in self.synced_data else int_to_emoji(0)
