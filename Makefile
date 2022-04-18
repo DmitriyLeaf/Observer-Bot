@@ -31,7 +31,7 @@ endif
 
 connect_aws:
 ifdef dns
-	ssh -i "source/secrets/misu-bot.pem" dns
+	ssh -i "source/secrets/misu-bot.pem" $(dns)
 else
 	$(info ***** Public DNS of instance is NOT provided! *****)
 endif
